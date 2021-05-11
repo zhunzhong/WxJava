@@ -12,6 +12,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.io.BaseEncoding;
+import me.chanjar.weixin.common.error.WxRuntimeException;
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -55,20 +58,19 @@ public class WxCryptUtil {
   }
 
   /**
-   * 构造函数
+   * 构造函数.
    *
    * @param token          公众平台上，开发者设置的token
    * @param encodingAesKey 公众平台上，开发者设置的EncodingAESKey
    * @param appidOrCorpid  公众平台appid/corpid
    */
-  public WxCryptUtil(String token, String encodingAesKey,
-                     String appidOrCorpid) {
+  public WxCryptUtil(String token, String encodingAesKey, String appidOrCorpid) {
     this.token = token;
     this.appidOrCorpid = appidOrCorpid;
-    this.aesKey = Base64.decodeBase64(encodingAesKey + "=");
+    this.aesKey = BaseEncoding.base64().decode(CharMatcher.whitespace().removeFrom(encodingAesKey));
   }
 
-  static String extractEncryptPart(String xml) {
+  private static String extractEncryptPart(String xml) {
     try {
       DocumentBuilder db = BUILDER_LOCAL.get();
       Document document = db.parse(new InputSource(new StringReader(xml)));
@@ -76,12 +78,12 @@ public class WxCryptUtil {
       Element root = document.getDocumentElement();
       return root.getElementsByTagName("Encrypt").item(0).getTextContent();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new WxRuntimeException(e);
     }
   }
 
   /**
-   * 将一个数字转换成生成4个字节的网络字节序bytes数组
+   * 将一个数字转换成生成4个字节的网络字节序bytes数组.
    */
   private static byte[] number2BytesInNetworkOrder(int number) {
     byte[] orderBytes = new byte[4];
@@ -93,7 +95,7 @@ public class WxCryptUtil {
   }
 
   /**
-   * 4个字节的网络字节序bytes数组还原成一个数字
+   * 4个字节的网络字节序bytes数组还原成一个数字.
    */
   private static int bytesNetworkOrder2Number(byte[] bytesInNetworkOrder) {
     int sourceNumber = 0;
@@ -105,7 +107,7 @@ public class WxCryptUtil {
   }
 
   /**
-   * 随机生成16位字符串
+   * 随机生成16位字符串.
    */
   private static String genRandomStr() {
     String base = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -119,7 +121,7 @@ public class WxCryptUtil {
   }
 
   /**
-   * 生成xml消息
+   * 生成xml消息.
    *
    * @param encrypt   加密后的消息密文
    * @param signature 安全签名
@@ -127,8 +129,7 @@ public class WxCryptUtil {
    * @param nonce     随机字符串
    * @return 生成的xml字符串
    */
-  private static String generateXml(String encrypt, String signature,
-                                    String timestamp, String nonce) {
+  private static String generateXml(String encrypt, String signature, String timestamp, String nonce) {
     String format = "<xml>\n" + "<Encrypt><![CDATA[%1$s]]></Encrypt>\n"
       + "<MsgSignature><![CDATA[%2$s]]></MsgSignature>\n"
       + "<TimeStamp>%3$s</TimeStamp>\n" + "<Nonce><![CDATA[%4$s]]></Nonce>\n"
@@ -165,7 +166,7 @@ public class WxCryptUtil {
    * @param plainText 需要加密的明文
    * @return 加密后base64编码的字符串
    */
-  protected String encrypt(String randomStr, String plainText) {
+  public String encrypt(String randomStr, String plainText) {
     ByteGroup byteCollector = new ByteGroup();
     byte[] randomStringBytes = randomStr.getBytes(CHARSET);
     byte[] plainTextBytes = plainText.getBytes(CHARSET);
@@ -198,7 +199,7 @@ public class WxCryptUtil {
       // 使用BASE64对加密后的字符串进行编码
       return BASE64.encodeToString(encrypted);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new WxRuntimeException(e);
     }
   }
 
@@ -224,7 +225,7 @@ public class WxCryptUtil {
     // 验证安全签名
     String signature = SHA1.gen(this.token, timeStamp, nonce, cipherText);
     if (!signature.equals(msgSignature)) {
-      throw new RuntimeException("加密消息签名校验失败");
+      throw new WxRuntimeException("加密消息签名校验失败");
     }
 
     // 解密
@@ -242,10 +243,9 @@ public class WxCryptUtil {
     try {
       // 设置解密模式为AES的CBC模式
       Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
-      SecretKeySpec key_spec = new SecretKeySpec(this.aesKey, "AES");
-      IvParameterSpec iv = new IvParameterSpec(
-        Arrays.copyOfRange(this.aesKey, 0, 16));
-      cipher.init(Cipher.DECRYPT_MODE, key_spec, iv);
+      SecretKeySpec keySpec = new SecretKeySpec(this.aesKey, "AES");
+      IvParameterSpec iv = new IvParameterSpec(Arrays.copyOfRange(this.aesKey, 0, 16));
+      cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
 
       // 使用BASE64对密文进行解码
       byte[] encrypted = Base64.decodeBase64(cipherText);
@@ -253,10 +253,11 @@ public class WxCryptUtil {
       // 解密
       original = cipher.doFinal(encrypted);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new WxRuntimeException(e);
     }
 
-    String xmlContent, fromAppid;
+    String xmlContent;
+    String fromAppid;
     try {
       // 去除补位字符
       byte[] bytes = PKCS7Encoder.decode(original);
@@ -266,18 +267,16 @@ public class WxCryptUtil {
 
       int xmlLength = bytesNetworkOrder2Number(networkOrder);
 
-      xmlContent = new String(Arrays.copyOfRange(bytes, 20, 20 + xmlLength),
-        CHARSET);
-      fromAppid = new String(
-        Arrays.copyOfRange(bytes, 20 + xmlLength, bytes.length), CHARSET);
+      xmlContent = new String(Arrays.copyOfRange(bytes, 20, 20 + xmlLength), CHARSET);
+      fromAppid = new String(Arrays.copyOfRange(bytes, 20 + xmlLength, bytes.length), CHARSET);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new WxRuntimeException(e);
     }
 
-    // appid不相同的情况
-    if (!fromAppid.equals(this.appidOrCorpid)) {
-      throw new RuntimeException("AppID不正确");
-    }
+    // appid不相同的情况 暂时忽略这段判断
+//    if (!fromAppid.equals(this.appidOrCorpid)) {
+//      throw new WxRuntimeException("AppID不正确，请核实！");
+//    }
 
     return xmlContent;
 

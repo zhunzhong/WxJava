@@ -22,19 +22,10 @@ import me.chanjar.weixin.mp.bean.material.WxMpMaterialVideoInfoResult;
  * 即以https://api.weixin.qq.com/cgi-bin/material
  * 和 https://api.weixin.qq.com/cgi-bin/media开头的接口
  * </pre>
+ *
+ * @author Binary Wang
  */
 public interface WxMpMaterialService {
-  String MEDIA_GET_URL = "https://api.weixin.qq.com/cgi-bin/media/get";
-  String MEDIA_UPLOAD_URL = "https://api.weixin.qq.com/cgi-bin/media/upload?type=%s";
-  String IMG_UPLOAD_URL = "https://api.weixin.qq.com/cgi-bin/media/uploadimg";
-  String MATERIAL_ADD_URL = "https://api.weixin.qq.com/cgi-bin/material/add_material?type=%s";
-  String NEWS_ADD_URL = "https://api.weixin.qq.com/cgi-bin/material/add_news";
-  String MATERIAL_GET_URL = "https://api.weixin.qq.com/cgi-bin/material/get_material";
-  String NEWS_UPDATE_URL = "https://api.weixin.qq.com/cgi-bin/material/update_news";
-  String MATERIAL_DEL_URL = "https://api.weixin.qq.com/cgi-bin/material/del_material";
-  String MATERIAL_GET_COUNT_URL = "https://api.weixin.qq.com/cgi-bin/material/get_materialcount";
-  String MATERIAL_BATCHGET_URL = "https://api.weixin.qq.com/cgi-bin/material/batchget_material";
-
   /**
    * <pre>
    * 新增临时素材
@@ -59,8 +50,9 @@ public interface WxMpMaterialService {
    *
    * @param mediaType 媒体类型, 请看{@link me.chanjar.weixin.common.api.WxConsts}
    * @param file      文件对象
-   * @throws WxErrorException
-   * @see #mediaUpload(String, String, InputStream)
+   * @return the wx media upload result
+   * @throws WxErrorException the wx error exception
+   * @see #mediaUpload(String, String, InputStream) #mediaUpload(String, String, InputStream)
    */
   WxMediaUploadResult mediaUpload(String mediaType, File file) throws WxErrorException;
 
@@ -76,8 +68,9 @@ public interface WxMpMaterialService {
    * @param mediaType   媒体类型, 请看{@link me.chanjar.weixin.common.api.WxConsts}
    * @param fileType    文件类型，请看{@link me.chanjar.weixin.common.api.WxConsts}
    * @param inputStream 输入流
-   * @throws WxErrorException
-   * @see #mediaUpload(java.lang.String, java.io.File)
+   * @return the wx media upload result
+   * @throws WxErrorException the wx error exception
+   * @see #mediaUpload(java.lang.String, java.io.File) #mediaUpload(java.lang.String, java.io.File)
    */
   WxMediaUploadResult mediaUpload(String mediaType, String fileType, InputStream inputStream) throws WxErrorException;
 
@@ -92,10 +85,26 @@ public interface WxMpMaterialService {
    * </pre>
    *
    * @param mediaId 媒体文件Id
-   * @return 保存到本地的临时文件
-   * @throws WxErrorException
+   * @return 保存到本地的临时文件 file
+   * @throws WxErrorException the wx error exception
    */
   File mediaDownload(String mediaId) throws WxErrorException;
+
+  /**
+   * <pre>
+   * 获取高清语音素材
+   * 公众号可以使用本接口获取从JSSDK的uploadVoice接口上传的临时语音素材，格式为speex，16K采样率。
+   * 该音频比上文的临时素材获取接口（格式为amr，8K采样率）更加清晰，适合用作语音识别等对音质要求较高的业务。
+   * 详情请见: <a href="https://developers.weixin.qq.com/doc/offiaccount/Asset_Management/Get_temporary_materials.html">
+   * 获取高清语音素材</a>
+   * 接口url格式：https://api.weixin.qq.com/cgi-bin/media/get/jssdk?access_token=ACCESS_TOKEN&media_id=MEDIA_ID
+   * </pre>
+   *
+   * @param mediaId 媒体文件Id
+   * @return 保存到本地的临时文件 file
+   * @throws WxErrorException the wx error exception
+   */
+  File jssdkMediaDownload(String mediaId) throws WxErrorException;
 
   /**
    * <pre>
@@ -107,7 +116,7 @@ public interface WxMpMaterialService {
    *
    * @param file 上传的文件对象
    * @return WxMediaImgUploadResult 返回图片url
-   * @throws WxErrorException
+   * @throws WxErrorException the wx error exception
    */
   WxMediaImgUploadResult mediaImgUpload(File file) throws WxErrorException;
 
@@ -132,6 +141,8 @@ public interface WxMpMaterialService {
    *
    * @param mediaType 媒体类型, 请看{@link me.chanjar.weixin.common.api.WxConsts}
    * @param material  上传的素材, 请看{@link WxMpMaterial}
+   * @return the wx mp material upload result
+   * @throws WxErrorException the wx error exception
    */
   WxMpMaterialUploadResult materialFileUpload(String mediaType, WxMpMaterial material) throws WxErrorException;
 
@@ -152,6 +163,8 @@ public interface WxMpMaterialService {
    * </pre>
    *
    * @param news 上传的图文消息, 请看{@link WxMpMaterialNews}
+   * @return the wx mp material upload result
+   * @throws WxErrorException the wx error exception
    */
   WxMpMaterialUploadResult materialNewsUpload(WxMpMaterialNews news) throws WxErrorException;
 
@@ -164,6 +177,8 @@ public interface WxMpMaterialService {
    * </pre>
    *
    * @param mediaId 永久素材的id
+   * @return the input stream
+   * @throws WxErrorException the wx error exception
    */
   InputStream materialImageOrVoiceDownload(String mediaId) throws WxErrorException;
 
@@ -176,6 +191,8 @@ public interface WxMpMaterialService {
    * </pre>
    *
    * @param mediaId 永久素材的id
+   * @return the wx mp material video info result
+   * @throws WxErrorException the wx error exception
    */
   WxMpMaterialVideoInfoResult materialVideoInfo(String mediaId) throws WxErrorException;
 
@@ -188,6 +205,8 @@ public interface WxMpMaterialService {
    * </pre>
    *
    * @param mediaId 永久素材的id
+   * @return the wx mp material news
+   * @throws WxErrorException the wx error exception
    */
   WxMpMaterialNews materialNewsInfo(String mediaId) throws WxErrorException;
 
@@ -200,6 +219,8 @@ public interface WxMpMaterialService {
    * </pre>
    *
    * @param wxMpMaterialArticleUpdate 用来更新图文素材的bean, 请看{@link WxMpMaterialArticleUpdate}
+   * @return the boolean
+   * @throws WxErrorException the wx error exception
    */
   boolean materialNewsUpdate(WxMpMaterialArticleUpdate wxMpMaterialArticleUpdate) throws WxErrorException;
 
@@ -216,6 +237,8 @@ public interface WxMpMaterialService {
    * </pre>
    *
    * @param mediaId 永久素材的id
+   * @return the boolean
+   * @throws WxErrorException the wx error exception
    */
   boolean materialDelete(String mediaId) throws WxErrorException;
 
@@ -231,6 +254,9 @@ public interface WxMpMaterialService {
    * 详情请见: <a href="http://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1444738733&token=&lang=zh_CN">获取素材总数</a>
    * 接口url格式：https://api.weixin.qq.com/cgi-bin/material/get_materialcount?access_token=ACCESS_TOKEN
    * </pre>
+   *
+   * @return the wx mp material count result
+   * @throws WxErrorException the wx error exception
    */
   WxMpMaterialCountResult materialCount() throws WxErrorException;
 
@@ -244,6 +270,8 @@ public interface WxMpMaterialService {
    *
    * @param offset 从全部素材的该偏移位置开始返回，0表示从第一个素材 返回
    * @param count  返回素材的数量，取值在1到20之间
+   * @return the wx mp material news batch get result
+   * @throws WxErrorException the wx error exception
    */
   WxMpMaterialNewsBatchGetResult materialNewsBatchGet(int offset, int count) throws WxErrorException;
 
@@ -258,6 +286,8 @@ public interface WxMpMaterialService {
    * @param type   媒体类型, 请看{@link me.chanjar.weixin.common.api.WxConsts}
    * @param offset 从全部素材的该偏移位置开始返回，0表示从第一个素材 返回
    * @param count  返回素材的数量，取值在1到20之间
+   * @return the wx mp material file batch get result
+   * @throws WxErrorException the wx error exception
    */
   WxMpMaterialFileBatchGetResult materialFileBatchGet(String type, int offset, int count) throws WxErrorException;
 

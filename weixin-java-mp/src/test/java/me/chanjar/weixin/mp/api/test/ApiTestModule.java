@@ -2,10 +2,9 @@ package me.chanjar.weixin.mp.api.test;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import me.chanjar.weixin.common.error.WxRuntimeException;
 import me.chanjar.weixin.mp.api.impl.WxMpServiceHttpClientImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +13,8 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.thoughtworks.xstream.XStream;
 import me.chanjar.weixin.common.util.xml.XStreamInitializer;
-import me.chanjar.weixin.mp.api.WxMpConfigStorage;
+import me.chanjar.weixin.mp.config.WxMpConfigStorage;
 import me.chanjar.weixin.mp.api.WxMpService;
-import me.chanjar.weixin.mp.api.impl.WxMpServiceOkHttpImpl;
 
 public class ApiTestModule implements Module {
   private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -26,19 +24,18 @@ public class ApiTestModule implements Module {
   public void configure(Binder binder) {
     try (InputStream inputStream = ClassLoader.getSystemResourceAsStream(TEST_CONFIG_XML)) {
       if (inputStream == null) {
-        throw new RuntimeException("测试配置文件【" + TEST_CONFIG_XML + "】未找到，请参照test-config-sample.xml文件生成");
+        throw new WxRuntimeException("测试配置文件【" + TEST_CONFIG_XML + "】未找到，请参照test-config-sample.xml文件生成");
       }
 
       TestConfigStorage config = this.fromXml(TestConfigStorage.class, inputStream);
       config.setAccessTokenLock(new ReentrantLock());
-      WxMpService wxMpServiceMulti = new WxMpServiceHttpClientImpl();
+      WxMpService mpService = new WxMpServiceHttpClientImpl();
 
-      // TODO 多WxAppId
-      wxMpServiceMulti.setWxMpConfigStorage(config);
-      wxMpServiceMulti.addWxMpConfigStorage("test-1", config);
+      mpService.setWxMpConfigStorage(config);
+      mpService.addConfigStorage("another", config);
 
       binder.bind(WxMpConfigStorage.class).toInstance(config);
-      binder.bind(WxMpService.class).toInstance(wxMpServiceMulti);
+      binder.bind(WxMpService.class).toInstance(mpService);
     } catch (IOException e) {
       this.log.error(e.getMessage(), e);
     }

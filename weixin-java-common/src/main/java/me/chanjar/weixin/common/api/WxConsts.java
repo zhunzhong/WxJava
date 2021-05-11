@@ -1,7 +1,11 @@
 package me.chanjar.weixin.common.api;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static me.chanjar.weixin.common.error.WxMpErrorMsgEnum.*;
 
 /**
  * 微信开发所使用到的常量类.
@@ -9,6 +13,18 @@ import java.util.Map;
  * @author Daniel Qian & binarywang
  */
 public class WxConsts {
+  /**
+   * access_token 相关错误代码
+   * <pre>
+   * 发生以下情况时尝试刷新access_token
+   * 40001 获取access_token时AppSecret错误，或者access_token无效
+   * 42001 access_token超时
+   * 40014 不合法的access_token，请开发者认真比对access_token的有效性（如是否过期），或查看是否正在为恰当的公众号调用接口
+   * </pre>
+   */
+  public static final List<Integer> ACCESS_TOKEN_ERROR_CODES = Arrays.asList(CODE_40001.getCode(),
+    CODE_40014.getCode(), CODE_42001.getCode());
+
   /**
    * 微信推送过来的消息的类型，和发送给微信xml格式消息的消息类型.
    */
@@ -85,9 +101,24 @@ public class WxConsts {
     public static final String TRANSFER_CUSTOMER_SERVICE = "transfer_customer_service";
 
     /**
-     * 小程序卡片(要求小程序与公众号已关联)
+     * 小程序卡片(要求小程序与公众号已关联).
      */
     public static final String MINIPROGRAMPAGE = "miniprogrampage";
+
+    /**
+     * 任务卡片消息.
+     */
+    public static final String TASKCARD = "taskcard";
+
+    /**
+     * 菜单消息.
+     */
+    public static final String MSGMENU = "msgmenu";
+
+    /**
+     * 小程序通知消息.
+     */
+    public static final String MINIPROGRAM_NOTICE = "miniprogram_notice";
   }
 
   /**
@@ -365,4 +396,31 @@ public class WxConsts {
     public static final String VIDEO = "video";
   }
 
+
+  /**
+   * 网络检测入参.
+   */
+  public static class NetCheckArgs {
+    public static final String ACTIONDNS = "dns";
+    public static final String ACTIONPING = "ping";
+    public static final String ACTIONALL = "all";
+    public static final String OPERATORUNICOM = "UNICOM";
+    public static final String OPERATORCHINANET = "CHINANET";
+    public static final String OPERATORCAP = "CAP";
+    public static final String OPERATORDEFAULT = "DEFAULT";
+  }
+
+  /**
+   * appId 类型
+   */
+  public static class AppIdType {
+    /**
+     * 公众号appId类型
+     */
+    public static final String MP_TYPE = "mp";
+    /**
+     * 小程序appId类型
+     */
+    public static final String MINI_TYPE = "mini";
+  }
 }

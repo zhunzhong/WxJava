@@ -1,12 +1,16 @@
 package com.github.binarywang.wxpay.bean.result;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -19,7 +23,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @XStreamAlias("xml")
-public class WxPayRedpackQueryResult extends BaseWxPayResult {
+public class WxPayRedpackQueryResult extends BaseWxPayResult implements Serializable {
   private static final long serialVersionUID = -3849864122189552906L;
 
   /**
@@ -222,6 +226,44 @@ public class WxPayRedpackQueryResult extends BaseWxPayResult {
    */
   @XStreamAlias("hblist")
   private List<RedpackInfo> redpackList;
+
+  /**
+   * 从XML结构中加载额外的熟悉
+   *
+   * @param d Document
+   */
+  @Override
+  protected void loadXml(Document d) {
+    mchBillNo = readXmlString(d, "mch_billno");
+    detailId = readXmlString(d, "detail_id");
+    status = readXmlString(d, "status");
+    sendType = readXmlString(d, "send_type");
+    hbType = readXmlString(d, "hb_type");
+    totalNum = readXmlInteger(d, "total_num");
+    totalAmount = readXmlInteger(d, "total_amount");
+    reason = readXmlString(d, "reason");
+    sendTime = readXmlString(d, "send_time");
+    refundTime = readXmlString(d, "refund_time");
+    refundAmount = readXmlInteger(d, "refund_amount");
+    wishing = readXmlString(d, "wishing");
+    remark = readXmlString(d, "remark");
+    actName = readXmlString(d, "act_name");
+
+    NodeList nodeList = d.getElementsByTagName("hbinfo");
+    List<RedpackInfo> list = new ArrayList<>(nodeList.getLength());
+
+    for (int i = 0, j = nodeList.getLength(); i < j; i++) {
+      Node node = nodeList.item(i);
+      RedpackInfo rp = new RedpackInfo();
+      rp.amount = readXmlInteger(node, "amount");
+      rp.openid = readXmlString(node, "openid");
+      rp.receiveTime = readXmlString(node, "rcv_time");
+      list.add(rp);
+    }
+
+    redpackList = list;
+
+  }
 
   /**
    * The type Redpack info.

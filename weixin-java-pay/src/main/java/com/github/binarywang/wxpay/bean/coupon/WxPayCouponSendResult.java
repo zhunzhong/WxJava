@@ -5,6 +5,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.w3c.dom.Document;
+
+import java.io.Serializable;
 
 /**
  * <pre>
@@ -18,7 +21,9 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @XStreamAlias("xml")
-public class WxPayCouponSendResult extends BaseWxPayResult {
+public class WxPayCouponSendResult extends BaseWxPayResult implements Serializable {
+  private static final long serialVersionUID = -3596288305333090962L;
+
   /**
    * <pre>
    * 字段名：设备号
@@ -136,4 +141,16 @@ public class WxPayCouponSendResult extends BaseWxPayResult {
   @XStreamAlias("ret_msg")
   private String retMsg;
 
+  @Override
+  protected void loadXml(Document d) {
+    deviceInfo = readXmlString(d, "device_info");
+    couponStockId = readXmlString(d, "coupon_stock_id");
+    respCount = readXmlInteger(d, "resp_count");
+    successCount = readXmlInteger(d, "success_count");
+    failedCount = readXmlInteger(d, "failed_count");
+    openid = readXmlString(d, "openid");
+    retCode = readXmlString(d, "ret_code");
+    couponId = readXmlString(d, "coupon_id");
+    retMsg = readXmlString(d, "ret_msg");
+  }
 }

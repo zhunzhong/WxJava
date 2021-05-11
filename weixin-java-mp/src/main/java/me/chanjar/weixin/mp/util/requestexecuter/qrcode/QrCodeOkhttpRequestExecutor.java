@@ -1,6 +1,6 @@
 package me.chanjar.weixin.mp.util.requestexecuter.qrcode;
 
-import me.chanjar.weixin.common.WxType;
+import me.chanjar.weixin.common.enums.WxType;
 import me.chanjar.weixin.common.error.WxError;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.util.fs.FileUtils;
@@ -32,7 +32,7 @@ public class QrCodeOkhttpRequestExecutor extends QrCodeRequestExecutor<OkHttpCli
   }
 
   @Override
-  public File execute(String uri, WxMpQrCodeTicket ticket) throws WxErrorException, IOException {
+  public File execute(String uri, WxMpQrCodeTicket ticket, WxType wxType) throws WxErrorException, IOException {
     logger.debug("QrCodeOkhttpRequestExecutor is running");
 
     if (ticket != null) {

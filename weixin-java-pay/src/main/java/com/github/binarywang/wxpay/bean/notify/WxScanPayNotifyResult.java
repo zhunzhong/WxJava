@@ -5,6 +5,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.w3c.dom.Document;
+
+import java.io.Serializable;
 
 /**
  * <pre>
@@ -18,7 +21,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @XStreamAlias("xml")
-public class WxScanPayNotifyResult extends BaseWxPayResult {
+public class WxScanPayNotifyResult extends BaseWxPayResult implements Serializable {
   private static final long serialVersionUID = 3381324564266118986L;
 
   /**
@@ -44,5 +47,12 @@ public class WxScanPayNotifyResult extends BaseWxPayResult {
    */
   @XStreamAlias("product_id")
   private String productId;
+
+  @Override
+  protected void loadXml(Document d) {
+    openid = readXmlString(d, "openid");
+    isSubscribe = readXmlString(d, "is_subscribe");
+    productId = readXmlString(d, "product_id");
+  }
 
 }

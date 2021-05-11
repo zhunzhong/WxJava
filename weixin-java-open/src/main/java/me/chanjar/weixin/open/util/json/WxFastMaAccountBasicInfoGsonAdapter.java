@@ -8,36 +8,48 @@ import me.chanjar.weixin.open.bean.result.WxFastMaAccountBasicInfoResult;
 import java.lang.reflect.Type;
 
 /**
+ * .
+ *
  * @author Hipple
- * @description
  * @since 2019/1/23 15:02
  */
 public class WxFastMaAccountBasicInfoGsonAdapter implements JsonDeserializer<WxFastMaAccountBasicInfoResult> {
   @Override
-  public WxFastMaAccountBasicInfoResult deserialize (JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-    WxFastMaAccountBasicInfoResult accountBasicInfo = new WxFastMaAccountBasicInfoResult ();
+  public WxFastMaAccountBasicInfoResult deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context)
+    throws JsonParseException {
+    WxFastMaAccountBasicInfoResult accountBasicInfo = new WxFastMaAccountBasicInfoResult();
     JsonObject jsonObject = jsonElement.getAsJsonObject();
 
-    accountBasicInfo.setAppId (GsonHelper.getString(jsonObject, "appid"));
-    accountBasicInfo.setAccountType (GsonHelper.getInteger (jsonObject, "account_type"));
-    accountBasicInfo.setPrincipalType (GsonHelper.getInteger (jsonObject, "principal_type"));
-    accountBasicInfo.setPrincipalName (GsonHelper.getString(jsonObject, "principal_name"));
-    accountBasicInfo.setRealnameStatus (GsonHelper.getInteger (jsonObject, "realname_status"));
+    accountBasicInfo.setAppId(GsonHelper.getString(jsonObject, "appid"));
+    accountBasicInfo.setAccountType(GsonHelper.getInteger(jsonObject, "account_type"));
+    accountBasicInfo.setPrincipalType(GsonHelper.getInteger(jsonObject, "principal_type"));
+    accountBasicInfo.setPrincipalName(GsonHelper.getString(jsonObject, "principal_name"));
+    accountBasicInfo.setRealnameStatus(GsonHelper.getInteger(jsonObject, "realname_status"));
+    accountBasicInfo.setNickname(GsonHelper.getString(jsonObject, "nickname"));
 
-    WxFastMaAccountBasicInfoResult.WxVerifyInfo verifyInfo = WxOpenGsonBuilder.create().fromJson(jsonObject.get("wx_verify_info"),
-      new TypeToken<WxFastMaAccountBasicInfoResult.WxVerifyInfo> () {
-      }.getType());
-    accountBasicInfo.setWxVerifyInfo (verifyInfo);
+    WxFastMaAccountBasicInfoResult.NicknameInfo nicknameInfo = WxOpenGsonBuilder.create()
+      .fromJson(jsonObject.get("nickname_info"),
+        new TypeToken<WxFastMaAccountBasicInfoResult.NicknameInfo>() {
+        }.getType());
+    accountBasicInfo.setNicknameInfo(nicknameInfo);
 
-    WxFastMaAccountBasicInfoResult.SignatureInfo signatureInfo = WxOpenGsonBuilder.create().fromJson(jsonObject.get("signature_info"),
-      new TypeToken<WxFastMaAccountBasicInfoResult.SignatureInfo> () {
-      }.getType());
-    accountBasicInfo.setSignatureInfo (signatureInfo);
+    WxFastMaAccountBasicInfoResult.WxVerifyInfo verifyInfo = WxOpenGsonBuilder.create()
+      .fromJson(jsonObject.get("wx_verify_info"),
+        new TypeToken<WxFastMaAccountBasicInfoResult.WxVerifyInfo>() {
+        }.getType());
+    accountBasicInfo.setWxVerifyInfo(verifyInfo);
 
-    WxFastMaAccountBasicInfoResult.HeadImageInfo headImageInfo = WxOpenGsonBuilder.create().fromJson(jsonObject.get("head_image_info"),
-      new TypeToken<WxFastMaAccountBasicInfoResult.HeadImageInfo> () {
-      }.getType());
-    accountBasicInfo.setHeadImageInfo (headImageInfo);
+    WxFastMaAccountBasicInfoResult.SignatureInfo signatureInfo = WxOpenGsonBuilder.create()
+      .fromJson(jsonObject.get("signature_info"),
+        new TypeToken<WxFastMaAccountBasicInfoResult.SignatureInfo>() {
+        }.getType());
+    accountBasicInfo.setSignatureInfo(signatureInfo);
+
+    WxFastMaAccountBasicInfoResult.HeadImageInfo headImageInfo = WxOpenGsonBuilder.create()
+      .fromJson(jsonObject.get("head_image_info"),
+        new TypeToken<WxFastMaAccountBasicInfoResult.HeadImageInfo>() {
+        }.getType());
+    accountBasicInfo.setHeadImageInfo(headImageInfo);
 
     return accountBasicInfo;
   }

@@ -1,14 +1,16 @@
 package me.chanjar.weixin.cp.api.impl;
 
 
-import me.chanjar.weixin.common.WxType;
+import me.chanjar.weixin.common.enums.WxType;
 import me.chanjar.weixin.common.bean.WxAccessToken;
 import me.chanjar.weixin.common.error.WxError;
 import me.chanjar.weixin.common.error.WxErrorException;
+import me.chanjar.weixin.common.error.WxRuntimeException;
 import me.chanjar.weixin.common.util.http.HttpType;
 import me.chanjar.weixin.common.util.http.apache.ApacheHttpClientBuilder;
 import me.chanjar.weixin.common.util.http.apache.DefaultApacheHttpClientBuilder;
 import me.chanjar.weixin.cp.config.WxCpConfigStorage;
+import me.chanjar.weixin.cp.constant.WxCpApiPathConsts;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,9 +20,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.io.IOException;
 
+/**
+ * @author someone
+ */
 public class WxCpServiceApacheHttpClientImpl extends BaseWxCpServiceImpl<CloseableHttpClient, HttpHost> {
-  protected CloseableHttpClient httpClient;
-  protected HttpHost httpProxy;
+  private CloseableHttpClient httpClient;
+  private HttpHost httpProxy;
 
   @Override
   public CloseableHttpClient getRequestHttpClient() {
@@ -44,9 +49,8 @@ public class WxCpServiceApacheHttpClientImpl extends BaseWxCpServiceImpl<Closeab
     }
 
     synchronized (this.globalAccessTokenRefreshLock) {
-      String url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?"
-        + "&corpid=" + this.configStorage.getCorpId()
-        + "&corpsecret=" + this.configStorage.getCorpSecret();
+      String url = String.format(this.configStorage.getApiUrl(WxCpApiPathConsts.GET_TOKEN), this.configStorage.getCorpId(), this.configStorage.getCorpSecret());
+
       try {
         HttpGet httpGet = new HttpGet(url);
         if (this.httpProxy != null) {
@@ -55,8 +59,8 @@ public class WxCpServiceApacheHttpClientImpl extends BaseWxCpServiceImpl<Closeab
           httpGet.setConfig(config);
         }
         String resultContent;
-        try (CloseableHttpClient httpclient = getRequestHttpClient();
-             CloseableHttpResponse response = httpclient.execute(httpGet)) {
+        try (CloseableHttpClient httpClient = getRequestHttpClient();
+             CloseableHttpResponse response = httpClient.execute(httpGet)) {
           resultContent = new BasicResponseHandler().handleResponse(response);
         } finally {
           httpGet.releaseConnection();
@@ -69,7 +73,7 @@ public class WxCpServiceApacheHttpClientImpl extends BaseWxCpServiceImpl<Closeab
         WxAccessToken accessToken = WxAccessToken.fromJson(resultContent);
         this.configStorage.updateAccessToken(accessToken.getAccessToken(), accessToken.getExpiresIn());
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new WxRuntimeException(e);
       }
     }
     return this.configStorage.getAccessToken();

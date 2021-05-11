@@ -34,17 +34,26 @@ public class WxFastMaAccountBasicInfoResultTest {
       "        \"head_image_url\": \"http://mmbiz.qpic.cn/mmbiz/a5icZrUmbV8p5jb6RZ8aYfjfS2AVle8URwBt8QIu6XbGewB9wiaWYWkPwq4R7pfdsFibuLkic16UcxDSNYtB8HnC1Q/0\",\n" +
       "        \"modify_used_count\": 3,\n" +
       "        \"modify_quota\": 5\n" +
-      "    }\n" +
+      "    },\n" +
+
+      "\t\"nickname_info\": {\n" +
+      "        \"nickname\": \"nickey\",\n" +
+      "        \"modify_used_count\": 2,\n" +
+      "        \"modify_quota\": 2\n" +
+      "    },\n" +
+      "    \"nickname\": \"nickeyInfo\"\n" +
       "}";
 
-    WxFastMaAccountBasicInfoResult res = WxOpenGsonBuilder.create ().fromJson (json, WxFastMaAccountBasicInfoResult.class);
+    WxFastMaAccountBasicInfoResult res = WxOpenGsonBuilder.create().fromJson(json, WxFastMaAccountBasicInfoResult.class);
 
     assertNotNull(res);
-    assertNotNull(res.getAppId ());
-    assertNotNull(res.getSignatureInfo ().getModifyQuota ());
-    assertNotNull(res.getHeadImageInfo ().getHeadImageUrl ());
-    assertNotNull(res.getWxVerifyInfo ().getNamingVerify ());
-    assertTrue(res.getWxVerifyInfo ().getNamingVerify ());
+    assertNotNull(res.getAppId());
+    assertNotNull(res.getSignatureInfo().getModifyQuota());
+    assertNotNull(res.getHeadImageInfo().getHeadImageUrl());
+    assertNotNull(res.getWxVerifyInfo().getNamingVerify());
+    assertTrue(res.getWxVerifyInfo().getNamingVerify());
+    assertNotNull(res.getNicknameInfo().getNickname());
+    assertNotNull(res.getNickname());
     System.out.println(res);
   }
 

@@ -5,6 +5,9 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+import me.chanjar.weixin.mp.bean.card.membercard.*;
+import me.chanjar.weixin.mp.enums.WxMpApiUrl;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.Gson;
@@ -21,22 +24,15 @@ import me.chanjar.weixin.mp.bean.card.AdvancedInfo;
 import me.chanjar.weixin.mp.bean.card.BaseInfo;
 import me.chanjar.weixin.mp.bean.card.CardUpdateResult;
 import me.chanjar.weixin.mp.bean.card.DateInfo;
-import me.chanjar.weixin.mp.bean.card.MemberCard;
-import me.chanjar.weixin.mp.bean.card.MemberCardActivateUserFormRequest;
-import me.chanjar.weixin.mp.bean.card.MemberCardActivateUserFormResult;
-import me.chanjar.weixin.mp.bean.card.MemberCardCreateRequest;
-import me.chanjar.weixin.mp.bean.card.MemberCardUpdateRequest;
+import me.chanjar.weixin.mp.bean.card.membercard.MemberCard;
+import me.chanjar.weixin.mp.bean.card.membercard.MemberCardActivateUserFormRequest;
+import me.chanjar.weixin.mp.bean.card.membercard.MemberCardActivateUserFormResult;
+import me.chanjar.weixin.mp.bean.card.membercard.MemberCardCreateRequest;
+import me.chanjar.weixin.mp.bean.card.membercard.MemberCardUpdateRequest;
 import me.chanjar.weixin.mp.bean.card.WxMpCardCreateResult;
 import me.chanjar.weixin.mp.bean.card.enums.BusinessServiceType;
 import me.chanjar.weixin.mp.bean.card.enums.CardColor;
 import me.chanjar.weixin.mp.bean.card.enums.DateInfoType;
-import me.chanjar.weixin.mp.bean.membercard.ActivatePluginParam;
-import me.chanjar.weixin.mp.bean.membercard.ActivatePluginParamResult;
-import me.chanjar.weixin.mp.bean.membercard.WxMpMemberCardActivatedMessage;
-import me.chanjar.weixin.mp.bean.membercard.WxMpMemberCardCreateMessage;
-import me.chanjar.weixin.mp.bean.membercard.WxMpMemberCardUpdateMessage;
-import me.chanjar.weixin.mp.bean.membercard.WxMpMemberCardUpdateResult;
-import me.chanjar.weixin.mp.bean.membercard.WxMpMemberCardUserInfoResult;
 import me.chanjar.weixin.mp.util.json.WxMpGsonBuilder;
 
 /**
@@ -46,14 +42,11 @@ import me.chanjar.weixin.mp.util.json.WxMpGsonBuilder;
  * @version 2017/7/8
  */
 @Slf4j
+@RequiredArgsConstructor
 public class WxMpMemberCardServiceImpl implements WxMpMemberCardService {
-  private WxMpService wxMpService;
+  private final WxMpService wxMpService;
 
   private static final Gson GSON = WxMpGsonBuilder.create();
-
-  public WxMpMemberCardServiceImpl(WxMpService wxMpService) {
-    this.wxMpService = wxMpService;
-  }
 
   @Override
   public WxMpService getWxMpService() {
@@ -76,7 +69,7 @@ public class WxMpMemberCardServiceImpl implements WxMpMemberCardService {
       return validResult;
     }
 
-    String response = this.wxMpService.post(MEMBER_CARD_CREAET, GSON.toJson(createMessageMessage));
+    String response = this.wxMpService.post(WxMpApiUrl.MemberCard.MEMBER_CARD_CREATE, GSON.toJson(createMessageMessage));
     return WxMpCardCreateResult.fromJson(response);
   }
 
@@ -195,7 +188,7 @@ public class WxMpMemberCardServiceImpl implements WxMpMemberCardService {
         dateInfoType.getDescription()));
     }
 
-    if (!baseInfo.isUseAllLocations() && StringUtils.isBlank(baseInfo.getLocationIdList())) {
+    if (!baseInfo.isUseAllLocations() && baseInfo.getLocationIdList().isEmpty()) {
       return WxMpCardCreateResult.failure("会员卡基本信息的门店使用范围选择指定门店,门店列表:locationIdList不能为空");
     }
 
@@ -218,7 +211,7 @@ public class WxMpMemberCardServiceImpl implements WxMpMemberCardService {
 
   @Override
   public String activateMemberCard(WxMpMemberCardActivatedMessage activatedMessage) throws WxErrorException {
-    return this.wxMpService.post(MEMBER_CARD_ACTIVATE, GSON.toJson(activatedMessage));
+    return this.wxMpService.post(WxMpApiUrl.MemberCard.MEMBER_CARD_ACTIVATE, GSON.toJson(activatedMessage));
   }
 
   @Override
@@ -227,7 +220,7 @@ public class WxMpMemberCardServiceImpl implements WxMpMemberCardService {
     jsonObject.addProperty("card_id", cardId);
     jsonObject.addProperty("code", code);
 
-    String responseContent = this.getWxMpService().post(MEMBER_CARD_USER_INFO_GET, jsonObject.toString());
+    String responseContent = this.getWxMpService().post(WxMpApiUrl.MemberCard.MEMBER_CARD_USER_INFO_GET, jsonObject.toString());
     log.debug("{}", responseContent);
     JsonElement tmpJsonElement = new JsonParser().parse(responseContent);
     return WxMpGsonBuilder.create().fromJson(tmpJsonElement,
@@ -239,7 +232,7 @@ public class WxMpMemberCardServiceImpl implements WxMpMemberCardService {
   public WxMpMemberCardUpdateResult updateUserMemberCard(WxMpMemberCardUpdateMessage updateUserMessage)
     throws WxErrorException {
 
-    String responseContent = this.getWxMpService().post(MEMBER_CARD_UPDATE_USER, GSON.toJson(updateUserMessage));
+    String responseContent = this.getWxMpService().post(WxMpApiUrl.MemberCard.MEMBER_CARD_UPDATE_USER, GSON.toJson(updateUserMessage));
 
     JsonElement tmpJsonElement = new JsonParser().parse(responseContent);
     return WxMpGsonBuilder.create().fromJson(tmpJsonElement,
@@ -249,39 +242,50 @@ public class WxMpMemberCardServiceImpl implements WxMpMemberCardService {
 
   @Override
   public MemberCardActivateUserFormResult setActivateUserForm(MemberCardActivateUserFormRequest userFormRequest) throws WxErrorException {
-    String responseContent = this.getWxMpService().post(MEMBER_CARD_ACTIVATEUSERFORM, GSON.toJson(userFormRequest));
+    String responseContent = this.getWxMpService().post(WxMpApiUrl.MemberCard.MEMBER_CARD_ACTIVATE_USER_FORM, GSON.toJson(userFormRequest));
     return MemberCardActivateUserFormResult.fromJson(responseContent);
   }
 
   @Override
   public ActivatePluginParam getActivatePluginParam(String cardId, String outStr) throws WxErrorException {
-    JsonObject params = new JsonObject();
-    params.addProperty("card_id", cardId);
-    params.addProperty("outer_str", outStr);
-    String response = this.wxMpService.post(MEMBER_CARD_ACTIVATE_URL, GSON.toJson(params));
-    ActivatePluginParamResult result = GSON.fromJson(response, ActivatePluginParamResult.class);
-    if (0 == result.getErrcode()) {
-      String url = result.getUrl();
-      try {
-        String decodedUrl = URLDecoder.decode(url, "UTF-8");
-        Map<String, String> resultMap = parseRequestUrl(decodedUrl);
-        ActivatePluginParam activatePluginParam = new ActivatePluginParam();
-        activatePluginParam.setEncryptCardId(resultMap.get("encrypt_card_id"));
-        activatePluginParam.setOuterStr(resultMap.get("outer_str"));
-        activatePluginParam.setBiz(resultMap.get("biz") + "==");
-        return activatePluginParam;
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
-      }
+    String url = this.getActivatePluginUrl(cardId, outStr);
+    try {
+      String decodedUrl = URLDecoder.decode(url, "UTF-8");
+      Map<String, String> resultMap = parseRequestUrl(decodedUrl);
+      ActivatePluginParam activatePluginParam = new ActivatePluginParam();
+      activatePluginParam.setEncryptCardId(resultMap.get("encrypt_card_id"));
+      activatePluginParam.setOuterStr(resultMap.get("outer_str"));
+      activatePluginParam.setBiz(resultMap.get("biz") + "==");
+      return activatePluginParam;
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
     }
     return null;
   }
 
+
+  @Override
+  public String getActivatePluginUrl(String cardId, String outStr) throws WxErrorException {
+    JsonObject params = new JsonObject();
+    params.addProperty("card_id", cardId);
+    params.addProperty("outer_str", outStr);
+    String response = this.wxMpService.post(WxMpApiUrl.MemberCard.MEMBER_CARD_ACTIVATE_URL, GSON.toJson(params));
+    ActivatePluginParamResult result = GSON.fromJson(response, ActivatePluginParamResult.class);
+    return result.getUrl();
+  }
+
   @Override
   public CardUpdateResult updateCardInfo(MemberCardUpdateRequest memberCardUpdateRequest) throws WxErrorException {
-    String response = this.wxMpService.post(MEMBER_CARD_UPDATE, GSON.toJson(memberCardUpdateRequest));
-    CardUpdateResult result = GSON.fromJson(response, CardUpdateResult.class);
-    return result;
+    String response = this.wxMpService.post(WxMpApiUrl.MemberCard.MEMBER_CARD_UPDATE, GSON.toJson(memberCardUpdateRequest));
+    return GSON.fromJson(response, CardUpdateResult.class);
+  }
+
+  @Override
+  public WxMpMemberCardActivateTempInfoResult getActivateTempInfo(String activateTicket) throws WxErrorException {
+    JsonObject params = new JsonObject();
+    params.addProperty("activate_ticket", activateTicket);
+    String response = this.wxMpService.post(WxMpApiUrl.MemberCard.MEMBER_CARD_ACTIVATE_TEMP_INFO, GSON.toJson(params));
+    return GSON.fromJson(response, WxMpMemberCardActivateTempInfoResult.class);
   }
 
   private static String truncateUrlPage(String strURL) {
@@ -299,7 +303,7 @@ public class WxMpMemberCardServiceImpl implements WxMpMemberCardService {
     return strAllParam;
   }
 
-  public static Map<String, String> parseRequestUrl(String url) {
+  private static Map<String, String> parseRequestUrl(String url) {
     Map<String, String> mapRequest = new HashMap<>(16);
 
     String[] arrSplit;

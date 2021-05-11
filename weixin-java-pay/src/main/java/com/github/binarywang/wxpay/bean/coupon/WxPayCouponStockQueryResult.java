@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.w3c.dom.Document;
+
+import java.io.Serializable;
 
 /**
  * <pre>
@@ -20,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @XStreamAlias("xml")
-public class WxPayCouponStockQueryResult extends BaseWxPayResult {
+public class WxPayCouponStockQueryResult extends BaseWxPayResult implements Serializable {
   private static final long serialVersionUID = 4644274730788451926L;
   /**
    * <pre>
@@ -191,4 +194,20 @@ public class WxPayCouponStockQueryResult extends BaseWxPayResult {
   @XStreamAlias("coupon_budget")
   private Integer couponBudget;
 
+  @Override
+  protected void loadXml(Document d) {
+    deviceInfo = readXmlString(d, "device_info");
+    couponStockId = readXmlString(d, "coupon_stock_id");
+    couponName = readXmlString(d, "coupon_name");
+    couponValue = readXmlInteger(d, "coupon_value");
+    couponMinimum = readXmlInteger(d, "coupon_mininumn");
+    couponStockStatus = readXmlInteger(d, "coupon_stock_status");
+    couponTotal = readXmlInteger(d, "coupon_total");
+    maxQuota = readXmlInteger(d, "max_quota");
+    isSendNum = readXmlInteger(d, "is_send_num");
+    beginTime = readXmlString(d, "begin_time");
+    endTime = readXmlString(d, "end_time");
+    createTime = readXmlString(d, "create_time");
+    couponBudget = readXmlInteger(d, "coupon_budget");
+  }
 }

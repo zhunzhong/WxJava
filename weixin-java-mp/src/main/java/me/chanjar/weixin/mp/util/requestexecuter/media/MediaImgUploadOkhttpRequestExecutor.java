@@ -1,6 +1,6 @@
 package me.chanjar.weixin.mp.util.requestexecuter.media;
 
-import me.chanjar.weixin.common.WxType;
+import me.chanjar.weixin.common.enums.WxType;
 import me.chanjar.weixin.common.error.WxError;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.util.http.RequestHttp;
@@ -26,7 +26,7 @@ public class MediaImgUploadOkhttpRequestExecutor extends MediaImgUploadRequestEx
   }
 
   @Override
-  public WxMediaImgUploadResult execute(String uri, File file) throws WxErrorException, IOException {
+  public WxMediaImgUploadResult execute(String uri, File file, WxType wxType) throws WxErrorException, IOException {
     logger.debug("MediaImgUploadOkhttpRequestExecutor is running");
     //得到httpClient
     OkHttpClient client = requestHttp.getRequestHttpClient();

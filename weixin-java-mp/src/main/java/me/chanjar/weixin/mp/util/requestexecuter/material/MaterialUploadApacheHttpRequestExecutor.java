@@ -1,6 +1,6 @@
 package me.chanjar.weixin.mp.util.requestexecuter.material;
 
-import me.chanjar.weixin.common.WxType;
+import me.chanjar.weixin.common.enums.WxType;
 import me.chanjar.weixin.common.error.WxError;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.util.http.RequestHttp;
@@ -33,7 +33,7 @@ public class MaterialUploadApacheHttpRequestExecutor extends MaterialUploadReque
   }
 
   @Override
-  public WxMpMaterialUploadResult execute(String uri, WxMpMaterial material) throws WxErrorException, IOException {
+  public WxMpMaterialUploadResult execute(String uri, WxMpMaterial material, WxType wxType) throws WxErrorException, IOException {
     HttpPost httpPost = new HttpPost(uri);
     if (requestHttp.getRequestHttpProxy() != null) {
       RequestConfig response = RequestConfig.custom().setProxy(requestHttp.getRequestHttpProxy()).build();
@@ -41,7 +41,7 @@ public class MaterialUploadApacheHttpRequestExecutor extends MaterialUploadReque
     }
 
     if (material == null) {
-      throw new WxErrorException(WxError.builder().errorCode(-1).errorMsg("非法请求，material参数为空").build());
+      throw new WxErrorException("非法请求，material参数为空");
     }
 
     File file = material.getFile();

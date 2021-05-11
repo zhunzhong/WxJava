@@ -5,6 +5,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.w3c.dom.Document;
+
+import java.io.Serializable;
 
 /**
  * <pre>
@@ -18,7 +21,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @XStreamAlias("xml")
-public class EntPayBankQueryResult extends BaseWxPayResult {
+public class EntPayBankQueryResult extends BaseWxPayResult implements Serializable {
   private static final long serialVersionUID = -8336631015989500746L;
 
   /**
@@ -93,4 +96,17 @@ public class EntPayBankQueryResult extends BaseWxPayResult {
   @XStreamAlias("reason")
   private String failReason;
 
+  @Override
+  protected void loadXml(Document d) {
+    partnerTradeNo = readXmlString(d, "partner_trade_no");
+    paymentNo = readXmlString(d, "payment_no");
+    bankNoMd5 = readXmlString(d, "bank_no_md5");
+    trueNameMd5 = readXmlString(d, "true_name_md5");
+    amount = readXmlInteger(d, "amount");
+    status = readXmlString(d, "status");
+    cmmsAmount = readXmlInteger(d, "cmms_amt");
+    createTime = readXmlString(d, "create_time");
+    paySuccessTime = readXmlString(d, "pay_succ_time");
+    failReason = readXmlString(d, "reason");
+  }
 }

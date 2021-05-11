@@ -1,8 +1,5 @@
 package com.github.binarywang.wxpay.bean.notify;
 
-import java.util.List;
-import java.util.Map;
-
 import com.github.binarywang.wxpay.bean.result.BaseWxPayResult;
 import com.github.binarywang.wxpay.constant.WxPayConstants;
 import com.github.binarywang.wxpay.converter.WxPayOrderNotifyResultConverter;
@@ -16,9 +13,17 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import me.chanjar.weixin.common.util.json.WxGsonBuilder;
 import me.chanjar.weixin.common.util.xml.XStreamInitializer;
+import org.w3c.dom.Document;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * 支付结果通用通知 ，文档见：https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_7
+ * 支付结果通知.
+ * 文档见：https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_7&index=8
+ * https://pay.weixin.qq.com/wiki/doc/api/external/native.php?chapter=9_7
  *
  * @author aimilin6688
  * @since 2.5.0
@@ -27,7 +32,7 @@ import me.chanjar.weixin.common.util.xml.XStreamInitializer;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @XStreamAlias("xml")
-public class WxPayOrderNotifyResult extends BaseWxPayResult {
+public class WxPayOrderNotifyResult extends BaseWxPayResult implements Serializable {
   private static final long serialVersionUID = 5389718115223345496L;
 
   /**
@@ -285,17 +290,41 @@ public class WxPayOrderNotifyResult extends BaseWxPayResult {
    */
   @XStreamAlias("version")
   private String version;
-  
+
+  /**
+   * <pre>
+   * 字段名：汇率.
+   * 变量名：rate_value
+   * 类型：String(16)
+   * 示例值：650000000
+   * 标价币种与支付币种的兑换比例乘以10的8次方即为此值，例如美元兑换人民币的比例为6.5，则rate_value=650000000
+   * </pre>
+   */
+  @XStreamAlias("rate_value")
+  private String rateValue;
+
+  /**
+   * <pre>
+   * 字段名：签名类型.
+   * 变量名：sign_type
+   * 类型：String(32)
+   * 示例值：HMAC-SHA256
+   * 签名类型，目前支持HMAC-SHA256和MD5，默认为MD5
+   * </pre>
+   */
+  @XStreamAlias("sign_type")
+  private String signType;
+
   @Override
   public void checkResult(WxPayService wxPayService, String signType, boolean checkSuccess) throws WxPayException {
     //防止伪造成功通知
     if (WxPayConstants.ResultCode.SUCCESS.equals(getReturnCode()) && getSign() == null) {
       throw new WxPayException("伪造的通知！");
     }
-    
+
     super.checkResult(wxPayService, signType, checkSuccess);
   }
-  
+
   /**
    * From xml wx pay order notify result.
    *
@@ -321,6 +350,51 @@ public class WxPayOrderNotifyResult extends BaseWxPayResult {
       }
     }
     return resultMap;
+  }
+
+  @Override
+  protected void loadXml(Document d) {
+    promotionDetail = readXmlString(d, "promotion_detail");
+    deviceInfo = readXmlString(d, "device_info");
+    openid = readXmlString(d, "openid");
+    isSubscribe = readXmlString(d, "is_subscribe");
+    subOpenid = readXmlString(d, "sub_openid");
+    subIsSubscribe = readXmlString(d, "sub_is_subscribe");
+    tradeType = readXmlString(d, "trade_type");
+    bankType = readXmlString(d, "bank_type");
+    totalFee = readXmlInteger(d, "total_fee");
+    settlementTotalFee = readXmlInteger(d, "settlement_total_fee");
+    feeType = readXmlString(d, "fee_type");
+    cashFee = readXmlInteger(d, "cash_fee");
+    cashFeeType = readXmlString(d, "cash_fee_type");
+    couponFee = readXmlInteger(d, "coupon_fee");
+    couponCount = readXmlInteger(d, "coupon_count");
+    transactionId = readXmlString(d, "transaction_id");
+    outTradeNo = readXmlString(d, "out_trade_no");
+    attach = readXmlString(d, "attach");
+    timeEnd = readXmlString(d, "time_end");
+    version = readXmlString(d, "version");
+    rateValue = readXmlString(d, "rate_value");
+    signType = readXmlString(d, "sign_type");
+
+    composeCoupons();
+  }
+
+  /**
+   * 通过xml组装couponList属性内容.
+   */
+  protected void composeCoupons() {
+    if (this.couponCount == null || this.couponCount == 0) {
+      return;
+    }
+    this.couponList = new ArrayList(couponCount);
+    for (int i = 0; i < this.couponCount; i++) {
+      WxPayOrderNotifyCoupon coupon = new WxPayOrderNotifyCoupon();
+      coupon.setCouponId(this.getXmlValue("xml/coupon_id_" + i));
+      coupon.setCouponType(this.getXmlValue("xml/coupon_type_" + i));
+      coupon.setCouponFee(this.getXmlValueAsInt("xml/coupon_fee_" + i));
+      couponList.add(coupon);
+    }
   }
 
   @Override
